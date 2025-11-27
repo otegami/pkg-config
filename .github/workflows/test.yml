@@ -99,6 +99,20 @@ jobs:
         shell: msys2 {0}
         run: |
           bundle install
+      - name: Debug pkg-config
+        shell: msys2 {0}
+        run: |
+          echo "=== glib-2.0.pc ==="
+          cat $(pkgconf --variable=pcfiledir glib-2.0)/glib-2.0.pc
+          echo ""
+          echo "=== Requires.private packages ==="
+          pkgconf --print-requires-private glib-2.0
+          echo ""
+          echo "=== pkgconf --cflags glib-2.0 ==="
+          pkgconf --cflags glib-2.0
+          echo ""
+          echo "=== pkg-config gem cflags ==="
+          ruby -I lib -r pkg-config -e "puts PKGConfig.cflags('glib-2.0')"
       - name: Test
         shell: msys2 {0}
         run: |

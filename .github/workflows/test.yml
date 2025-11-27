@@ -105,8 +105,11 @@ jobs:
           echo "=== glib-2.0.pc ==="
           cat $(pkgconf --variable=pcfiledir glib-2.0)/glib-2.0.pc
           echo ""
-          echo "=== Requires.private packages ==="
-          pkgconf --print-requires-private glib-2.0
+          echo "=== libpcre2-8.pc (Requires.private of glib-2.0) ==="
+          cat $(pkgconf --variable=pcfiledir libpcre2-8)/libpcre2-8.pc
+          echo ""
+          echo "=== pkgconf --cflags libpcre2-8 ==="
+          pkgconf --cflags libpcre2-8
           echo ""
           echo "=== pkgconf --cflags glib-2.0 ==="
           pkgconf --cflags glib-2.0

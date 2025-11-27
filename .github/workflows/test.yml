@@ -102,6 +102,12 @@ jobs:
       - name: Debug pkg-config
         shell: msys2 {0}
         run: |
+          echo "=== pkgconf --version ==="
+          pkgconf --version
+          echo ""
+          echo "=== which pkgconf ==="
+          which pkgconf
+          echo ""
           echo "=== glib-2.0.pc ==="
           cat $(pkgconf --variable=pcfiledir glib-2.0)/glib-2.0.pc
           echo ""

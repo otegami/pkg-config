@@ -53,7 +53,7 @@ jobs:
         if: |
           runner.os == 'Windows'
         run: |
-          ridk exec pacman --sync --noconfirm mingw-w64-x86_64-cairo mingw-w64-ucrt-x86_64-cairo
+          ridk exec pacman --sync --noconfirm mingw-w64-x86_64-cairo mingw-w64-ucrt-x86_64-cairo mingw-w64-x86_64-re2 mingw-w64-ucrt-x86_64-re2
       - name: Install dependencies
         run: |
           bundle install
@@ -68,6 +68,19 @@ jobs:
           ridk exec pkgconf --dump-personality
           echo "=== pkgconf --help ==="
           ridk exec pkgconf --help
+      - name: Debug pkgconf --debug --cflags re2 (RubyInstaller)
+        if: |
+          runner.os == 'Windows'
+        run: |
+          ridk exec pkgconf --debug --cflags re2 > pkgconf-debug-re2.txt 2>&1
+          echo "=== Output size: $(wc -l < pkgconf-debug-re2.txt) lines ==="
+      - name: Upload debug output (RubyInstaller)
+        if: |
+          runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkgconf-debug-re2-rubyinstaller
+          path: pkgconf-debug-re2.txt
       - name: Test
         run: |
           bundle exec rake
@@ -104,6 +117,7 @@ jobs:
           install: >-
             base-devel
             ${{ matrix.package-prefix }}-cairo
+            ${{ matrix.package-prefix }}-re2
             ${{ matrix.package-prefix }}-ruby
             ${{ matrix.package-prefix }}-toolchain
       - name: Install dependencies
@@ -132,6 +146,16 @@ jobs:
           echo ""
           echo "=== pkgconf --cflags --keep-system-cflags glib-2.0 ==="
           pkgconf --cflags --keep-system-cflags glib-2.0
+      - name: Debug pkgconf --debug --cflags re2 (MSYS2)
+        shell: msys2 {0}
+        run: |
+          pkgconf --debug --cflags re2 > pkgconf-debug-re2.txt 2>&1
+          echo "=== Output size: $(wc -l < pkgconf-debug-re2.txt) lines ==="
+      - name: Upload debug output (MSYS2)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkgconf-debug-re2-msys2-${{ matrix.msystem }}
+          path: pkgconf-debug-re2.txt
       - name: Test
         shell: msys2 {0}
         run: |

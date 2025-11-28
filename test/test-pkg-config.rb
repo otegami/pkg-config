@@ -314,4 +314,43 @@ Cflags: -I${includedir}/my-package
                    parse_requires("fribidi = 1.0"))
     end
   end
+
+  sub_test_case("#filter_system_include_paths") do
+    def filter_system_include_paths(path_flags, system_paths)
+      original_system_paths = PackageConfig.system_include_paths
+      PackageConfig.instance_variable_set(:@system_include_paths, system_paths)
+      @glib.__send__(:filter_system_include_paths, path_flags)
+    ensure
+      PackageConfig.instance_variable_set(:@system_include_paths, original_system_paths)
+    end
+
+    def test_no_system_paths
+      path_flags = ["-I/usr/local/include", "-I/opt/include"]
+      assert_equal(path_flags, filter_system_include_paths(path_flags, []))
+    end
+
+    def test_filter_exact_match
+      path_flags = ["-I/usr/local/include", "-I/usr/include", "-I/opt/include"]
+      assert_equal(["-I/usr/local/include", "-I/opt/include"],
+                   filter_system_include_paths(path_flags, ["/usr/include"]))
+    end
+
+    def test_filter_case_insensitive
+      path_flags = ["-ID:/MSYS64/UCRT64/INCLUDE", "-I/opt/include"]
+      assert_equal(["-I/opt/include"],
+                   filter_system_include_paths(path_flags, ["D:/msys64/ucrt64/include"]))
+    end
+
+    def test_filter_multiple_system_paths
+      path_flags = ["-I/usr/include", "-I/usr/local/include", "-I/opt/include"]
+      assert_equal(["-I/opt/include"],
+                   filter_system_include_paths(path_flags, ["/usr/include", "/usr/local/include"]))
+    end
+
+    def test_no_filter_partial_match
+      path_flags = ["-I/usr/include/glib-2.0", "-I/usr/local/include"]
+      assert_equal(path_flags,
+                   filter_system_include_paths(path_flags, ["/usr/include"]))
+    end
+  end
 end

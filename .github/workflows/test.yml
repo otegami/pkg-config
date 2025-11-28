@@ -71,6 +71,7 @@ jobs:
       - name: Debug pkgconf --debug --cflags re2 (RubyInstaller)
         if: |
           runner.os == 'Windows'
+        shell: bash
         run: |
           ridk exec pkgconf --debug --cflags re2 > pkgconf-debug-re2.txt 2>&1
           echo "=== Output size: $(wc -l < pkgconf-debug-re2.txt) lines ==="

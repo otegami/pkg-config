@@ -165,11 +165,17 @@ class PackageConfig
       @custom_override_variables ||= with_config("override-variables", "")
     end
 
+    @system_include_paths = nil
+    def system_include_paths
+      @system_include_paths ||= compute_system_include_paths
+    end
+
     def clear_configure_args_cache
       @native_pkg_config = nil
       @native_pkg_config_prefix = nil
       @default_path = nil
       @custom_override_variables = nil
+      @system_include_paths = nil
     end
 
     private
@@ -385,6 +391,38 @@ class PackageConfig
         end
       end
     end
+
+    def compute_system_include_paths
+      # Only apply on MSYS2 (non-RubyInstaller) environment
+      return [] unless msys2?
+      return [] unless native_pkg_config
+
+      personality = run_command(native_pkg_config.to_s, "--dump-personality")
+      return [] unless personality
+
+      # Parse SystemIncludePaths from pkgconf --dump-personality output
+      # Example: "SystemIncludePaths: /ucrt64/include"
+      if /^SystemIncludePaths:\s*(.*)$/ =~ personality
+        paths = $1.strip.split(/\s+/)
+        # Expand MSYS2 paths to full Windows paths
+        paths.map do |path|
+          expanded = expand_msys2_path(path)
+          expanded || path
+        end
+      else
+        []
+      end
+    end
+
+    def msys2?
+      /mingw/ =~ RUBY_PLATFORM && !Object.const_defined?(:RubyInstaller)
+    end
+
+    def expand_msys2_path(path)
+      # Use cygpath to convert MSYS2 path to Windows path
+      result = run_command("cygpath", "-m", path)
+      result&.strip
+    end
   end
 
   attr_reader :name
@@ -539,6 +577,7 @@ class PackageConfig
     path_flags = path_flags.reject do |flag|
       flag == "-I/usr/include"
     end
+    path_flags = filter_system_include_paths(path_flags)
     path_flags = path_flags.uniq
     if @msvc_syntax
       path_flags = path_flags.collect do |flag|
@@ -560,6 +599,21 @@ class PackageConfig
       pkg_config_prefix.to_s
     end
     "#{flag_option}#{path}"
+  end
+
+  def filter_system_include_paths(path_flags)
+    system_paths = self.class.system_include_paths
+    return path_flags if system_paths.empty?
+
+    path_flags.reject do |flag|
+      path = flag.sub(/\A-I/, "")
+      system_paths.any? do |system_path|
+        # Exact match for the system include path
+        path == system_path ||
+          # Case-insensitive comparison for Windows paths
+          path.downcase == system_path.downcase
+      end
+    end
   end
 
   def normalize_cflags(cflags)

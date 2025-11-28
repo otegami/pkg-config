@@ -66,6 +66,8 @@ jobs:
           echo ""
           echo "=== pkgconf --dump-personality ==="
           ridk exec pkgconf --dump-personality
+          echo "=== pkgconf --help ==="
+          ridk exec pkgconf --help
       - name: Test
         run: |
           bundle exec rake
@@ -116,6 +118,8 @@ jobs:
           echo ""
           echo "=== pkgconf --dump-personality ==="
           pkgconf --dump-personality
+          echo "=== pkgconf --help ==="
+          pkgconf --help
           echo ""
           echo "=== which pkgconf ==="
           which pkgconf

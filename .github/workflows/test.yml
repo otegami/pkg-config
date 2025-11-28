@@ -57,6 +57,15 @@ jobs:
       - name: Install dependencies
         run: |
           bundle install
+      - name: Debug pkg-config (RubyInstaller)
+        if: |
+          runner.os == 'Windows'
+        run: |
+          echo "=== pkgconf --version ==="
+          ridk exec pkgconf --version
+          echo ""
+          echo "=== pkgconf --dump-personality ==="
+          ridk exec pkgconf --dump-personality
       - name: Test
         run: |
           bundle exec rake
@@ -99,11 +108,14 @@ jobs:
         shell: msys2 {0}
         run: |
           bundle install
-      - name: Debug pkg-config
+      - name: Debug pkg-config (MSYS2)
         shell: msys2 {0}
         run: |
           echo "=== pkgconf --version ==="
           pkgconf --version
+          echo ""
+          echo "=== pkgconf --dump-personality ==="
+          pkgconf --dump-personality
           echo ""
           echo "=== which pkgconf ==="
           which pkgconf
@@ -111,29 +123,11 @@ jobs:
           echo "=== PKG_CONFIG environment variables ==="
           env | grep -i pkg_config || true
           echo ""
-          echo "=== pkgconf --variable pc_path pkg-config ==="
-          pkgconf --variable=pc_path pkg-config
-          echo ""
-          echo "=== glib-2.0.pc ==="
-          cat $(pkgconf --variable=pcfiledir glib-2.0)/glib-2.0.pc
-          echo ""
-          echo "=== libpcre2-8.pc (Requires.private of glib-2.0) ==="
-          cat $(pkgconf --variable=pcfiledir libpcre2-8)/libpcre2-8.pc
-          echo ""
-          echo "=== pkgconf --cflags libpcre2-8 ==="
-          pkgconf --cflags libpcre2-8
-          echo ""
-          echo "=== pkgconf --cflags --keep-system-cflags libpcre2-8 ==="
-          pkgconf --cflags --keep-system-cflags libpcre2-8
-          echo ""
           echo "=== pkgconf --cflags glib-2.0 ==="
           pkgconf --cflags glib-2.0
           echo ""
           echo "=== pkgconf --cflags --keep-system-cflags glib-2.0 ==="
           pkgconf --cflags --keep-system-cflags glib-2.0
-          echo ""
-          echo "=== pkg-config gem cflags ==="
-          ruby -I lib -r pkg-config -e "puts PKGConfig.cflags('glib-2.0')"
       - name: Test
         shell: msys2 {0}
         run: |

@@ -71,10 +71,10 @@ jobs:
       - name: Debug pkgconf --debug --cflags re2 (RubyInstaller)
         if: |
           runner.os == 'Windows'
-        shell: bash
         run: |
-          ridk exec pkgconf --debug --cflags re2 > pkgconf-debug-re2.txt 2>&1
-          echo "=== Output size: $(wc -l < pkgconf-debug-re2.txt) lines ==="
+          ridk exec pkgconf --debug --cflags re2 2>&1 | Out-File -FilePath pkgconf-debug-re2.txt -Encoding utf8
+          $lines = (Get-Content pkgconf-debug-re2.txt).Count
+          Write-Output "=== Output size: $lines lines ==="
       - name: Upload debug output (RubyInstaller)
         if: |
           runner.os == 'Windows'
